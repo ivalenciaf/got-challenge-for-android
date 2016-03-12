@@ -1,7 +1,6 @@
 package es.npatarino.android.gotchallenge;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
@@ -14,13 +13,15 @@ import android.support.v4.widget.ContentLoadingProgressBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.TextView;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -74,20 +75,27 @@ public class HomeActivity extends AppCompatActivity {
         this.vp = vp;
     }
 
-    public static class GoTListFragment extends Fragment {
+    public static class GoTListFragment extends Fragment implements SearchView.OnQueryTextListener {
 
         private static final String TAG = "GoTListFragment";
+
+        private RecyclerView rv;
+        private List<GoTCharacter> mCharacters;
+        private GoTAdapter adp;
 
         public GoTListFragment() {
         }
 
         @Override
         public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
+            // Informs this fragment has menus so that the search view is available
+            setHasOptionsMenu(true);
+
             View rootView = inflater.inflate(R.layout.fragment_list, container, false);
             final ContentLoadingProgressBar pb = (ContentLoadingProgressBar) rootView.findViewById(R.id.pb);
-            RecyclerView rv = (RecyclerView) rootView.findViewById(R.id.rv);
+            rv = (RecyclerView) rootView.findViewById(R.id.rv);
 
-            final GoTAdapter adp = new GoTAdapter(getActivity());
+            adp = new GoTAdapter(getActivity());
             rv.setLayoutManager(new LinearLayoutManager(getActivity()));
             rv.setHasFixedSize(true);
             rv.setAdapter(adp);
@@ -113,11 +121,12 @@ public class HomeActivity extends AppCompatActivity {
 
                         Type listType = new TypeToken<ArrayList<GoTCharacter>>() {
                         }.getType();
-                        final List<GoTCharacter> characters = new Gson().fromJson(response.toString(), listType);
+                        mCharacters = new Gson().fromJson(response.toString(), listType);
                         GoTListFragment.this.getActivity().runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                adp.addAll(characters);
+                                adp.addAll(mCharacters);
+                                ((FilterCharacterSearch) adp.getFilter()).setCharacters(mCharacters);
                                 adp.notifyDataSetChanged();
                                 pb.hide();
                             }
@@ -130,6 +139,29 @@ public class HomeActivity extends AppCompatActivity {
                 }
             }).start();
             return rootView;
+        }
+
+        @Override
+        public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+            // Inflates the menu with the search view
+            inflater.inflate(R.menu.menu, menu);
+
+            SearchView searchView = (SearchView) menu.findItem(R.id.action_search).getActionView();
+            searchView.setQueryHint(getString(R.string.action_search));
+            searchView.setOnQueryTextListener(this);
+        }
+
+        @Override
+        public boolean onQueryTextChange(String query) {
+            adp.getFilter().filter(query);
+            adp.notifyDataSetChanged();
+            rv.scrollToPosition(0);
+            return true;
+        }
+
+        @Override
+        public boolean onQueryTextSubmit(String query) {
+            return false;
         }
     }
 
@@ -208,117 +240,6 @@ public class HomeActivity extends AppCompatActivity {
         }
     }
 
-    public class SectionsPagerAdapter extends FragmentPagerAdapter {
-
-        public SectionsPagerAdapter(FragmentManager fm) {
-            super(fm);
-        }
-
-        @Override
-        public Fragment getItem(int position) {
-            if (position == 0) {
-                return new GoTListFragment();
-            } else {
-                return new GoTHousesListFragment();
-            }
-        }
-
-        @Override
-        public int getCount() {
-            return 2;
-        }
-
-        @Override
-        public CharSequence getPageTitle(int position) {
-            switch (position) {
-                case 0:
-                    return "Characters";
-                case 1:
-                    return "Houses";
-            }
-            return null;
-        }
-    }
-
-    static class GoTAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
-
-        private final List<GoTCharacter> gcs;
-        private Activity a;
-
-        public GoTAdapter(Activity activity) {
-            this.gcs = new ArrayList<>();
-            a = activity;
-        }
-
-        void addAll(Collection<GoTCharacter> collection) {
-            for (int i = 0; i < collection.size(); i++) {
-                gcs.add((GoTCharacter) collection.toArray()[i]);
-            }
-        }
-
-        @Override
-        public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            return new GotCharacterViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.got_character_row, parent, false));
-        }
-
-        @Override
-        public void onBindViewHolder(final RecyclerView.ViewHolder holder, final int position) {
-            GotCharacterViewHolder gotCharacterViewHolder = (GotCharacterViewHolder) holder;
-            gotCharacterViewHolder.render(gcs.get(position));
-            ((GotCharacterViewHolder) holder).imp.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(final View v) {
-                    Intent intent = new Intent(((GotCharacterViewHolder) holder).itemView.getContext(), DetailActivity.class);
-                    intent.putExtra("description", gcs.get(position).d);
-                    intent.putExtra("name", gcs.get(position).n);
-                    intent.putExtra("imageUrl", gcs.get(position).iu);
-                    ((GotCharacterViewHolder) holder).itemView.getContext().startActivity(intent);
-                }
-            });
-        }
-
-        @Override
-        public int getItemCount() {
-            return gcs.size();
-        }
-
-        class GotCharacterViewHolder extends RecyclerView.ViewHolder {
-
-            private static final String TAG = "GotCharacterViewHolder";
-            ImageView imp;
-            TextView tvn;
-
-            public GotCharacterViewHolder(View itemView) {
-                super(itemView);
-                imp = (ImageView) itemView.findViewById(R.id.ivBackground);
-                tvn = (TextView) itemView.findViewById(R.id.tv_name);
-            }
-
-            public void render(final GoTCharacter goTCharacter) {
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        URL url = null;
-                        try {
-                            url = new URL(goTCharacter.iu);
-                            final Bitmap bmp = BitmapFactory.decodeStream(url.openConnection().getInputStream());
-                            a.runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    imp.setImageBitmap(bmp);
-                                    tvn.setText(goTCharacter.n);
-                                }
-                            });
-                        } catch (IOException e) {
-                            Log.e(TAG, e.getLocalizedMessage());
-                        }
-                    }
-                }).start();
-            }
-        }
-
-    }
-
     static class GoTHouseAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
         private final List<GoTCharacter.GoTHouse> gcs;
@@ -383,5 +304,37 @@ public class HomeActivity extends AppCompatActivity {
             }
         }
 
+    }
+
+    public class SectionsPagerAdapter extends FragmentPagerAdapter {
+
+        public SectionsPagerAdapter(FragmentManager fm) {
+            super(fm);
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            if (position == 0) {
+                return new GoTListFragment();
+            } else {
+                return new GoTHousesListFragment();
+            }
+        }
+
+        @Override
+        public int getCount() {
+            return 2;
+        }
+
+        @Override
+        public CharSequence getPageTitle(int position) {
+            switch (position) {
+                case 0:
+                    return "Characters";
+                case 1:
+                    return "Houses";
+            }
+            return null;
+        }
     }
 }
