@@ -1,8 +1,5 @@
 package es.npatarino.android.gotchallenge;
 
-import android.app.Activity;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
@@ -21,20 +18,15 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.lang.reflect.Type;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
+
+import es.npatarino.android.gotchallenge.net.GoTRestClient;
+import retrofit.Callback;
+import retrofit.Response;
+import retrofit.Retrofit;
 
 public class HomeActivity extends AppCompatActivity {
 
@@ -82,6 +74,28 @@ public class HomeActivity extends AppCompatActivity {
         private RecyclerView rv;
         private List<GoTCharacter> mCharacters;
         private GoTAdapter adp;
+        private ContentLoadingProgressBar pb;
+        private Callback<List<GoTCharacter>> callback = new Callback<List<GoTCharacter>>() {
+            @Override
+            public void onResponse(Response<List<GoTCharacter>> response, Retrofit retrofit) {
+                mCharacters = response.body();
+
+                Log.d(TAG, "Characters: " + mCharacters);
+
+                // Do a precache of all the images of the characters to make posible view them in offline mode
+                precacheImages();
+
+                adp.addAll(mCharacters);
+                ((FilterCharacterSearch) adp.getFilter()).setCharacters(mCharacters);
+                adp.notifyDataSetChanged();
+                pb.hide();
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                Log.e(TAG, "Exception calling characters service.", t);
+            }
+        };
 
         public GoTListFragment() {
         }
@@ -92,7 +106,7 @@ public class HomeActivity extends AppCompatActivity {
             setHasOptionsMenu(true);
 
             View rootView = inflater.inflate(R.layout.fragment_list, container, false);
-            final ContentLoadingProgressBar pb = (ContentLoadingProgressBar) rootView.findViewById(R.id.pb);
+            pb = (ContentLoadingProgressBar) rootView.findViewById(R.id.pb);
             rv = (RecyclerView) rootView.findViewById(R.id.rv);
 
             adp = new GoTAdapter(getActivity());
@@ -100,44 +114,8 @@ public class HomeActivity extends AppCompatActivity {
             rv.setHasFixedSize(true);
             rv.setAdapter(adp);
 
-            new Thread(new Runnable() {
+            GoTRestClient.getInstance(getContext()).characters(callback);
 
-                @Override
-                public void run() {
-                    String url = "http://ec2-52-18-202-124.eu-west-1.compute.amazonaws.com:3000/characters";
-
-                    URL obj = null;
-                    try {
-                        obj = new URL(url);
-                        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-                        con.setRequestMethod("GET");
-                        BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-                        String inputLine;
-                        StringBuffer response = new StringBuffer();
-                        while ((inputLine = in.readLine()) != null) {
-                            response.append(inputLine);
-                        }
-                        in.close();
-
-                        Type listType = new TypeToken<ArrayList<GoTCharacter>>() {
-                        }.getType();
-                        mCharacters = new Gson().fromJson(response.toString(), listType);
-                        GoTListFragment.this.getActivity().runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                adp.addAll(mCharacters);
-                                ((FilterCharacterSearch) adp.getFilter()).setCharacters(mCharacters);
-                                adp.notifyDataSetChanged();
-                                pb.hide();
-                            }
-                        });
-                    } catch (IOException e) {
-                        Log.e(TAG, e.getLocalizedMessage());
-                    }
-
-
-                }
-            }).start();
             return rootView;
         }
 
@@ -163,11 +141,68 @@ public class HomeActivity extends AppCompatActivity {
         public boolean onQueryTextSubmit(String query) {
             return false;
         }
+
+        private void precacheImages() {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    GoTRestClient client = GoTRestClient.getInstance(getContext());
+
+                    for (GoTCharacter character : mCharacters) {
+                        try {
+                            client.getImage(character.getIu());
+                            client.getImage(character.getHu());
+                        } catch (IOException e) {
+                            Log.w(TAG, "Exception precaching images of character", e);
+                        }
+                    }
+                }
+            }).start();
+        }
     }
 
     public static class GoTHousesListFragment extends Fragment {
 
         private static final String TAG = "GoTHousesListFragment";
+        private GoTHouseAdapter adp;
+        private ContentLoadingProgressBar pb;
+        private Callback<List<GoTCharacter>> callback = new Callback<List<GoTCharacter>>() {
+            @Override
+            public void onResponse(Response<List<GoTCharacter>> response, Retrofit retrofit) {
+                List<GoTCharacter> characters = response.body();
+
+                Log.d(TAG, "Characters: " + characters);
+
+                ArrayList<GoTCharacter.GoTHouse> hs = new ArrayList<GoTCharacter.GoTHouse>();
+                for (int i = 0; i < characters.size(); i++) {
+                    boolean b = false;
+                    for (int j = 0; j < hs.size(); j++) {
+                        if (hs.get(j).n.equalsIgnoreCase(characters.get(i).hn)) {
+                            b = true;
+                        }
+                    }
+                    if (!b) {
+                        if (characters.get(i).hi != null && !characters.get(i).hi.isEmpty()) {
+                            GoTCharacter.GoTHouse h = new GoTCharacter.GoTHouse();
+                            h.i = characters.get(i).hi;
+                            h.n = characters.get(i).hn;
+                            h.u = characters.get(i).hu;
+                            hs.add(h);
+                            b = false;
+                        }
+                    }
+                }
+                adp.addAll(hs);
+                adp.notifyDataSetChanged();
+                pb.hide();
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                Log.e(TAG, "Exception calling characters service.", t);
+                t.printStackTrace();
+            }
+        };
 
         public GoTHousesListFragment() {
         }
@@ -175,135 +210,18 @@ public class HomeActivity extends AppCompatActivity {
         @Override
         public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_list, container, false);
-            final ContentLoadingProgressBar pb = (ContentLoadingProgressBar) rootView.findViewById(R.id.pb);
+            pb = (ContentLoadingProgressBar) rootView.findViewById(R.id.pb);
             RecyclerView rv = (RecyclerView) rootView.findViewById(R.id.rv);
 
-            final GoTHouseAdapter adp = new GoTHouseAdapter(getActivity());
+            adp = new GoTHouseAdapter(getActivity());
             rv.setLayoutManager(new LinearLayoutManager(getActivity()));
             rv.setHasFixedSize(true);
             rv.setAdapter(adp);
 
-            new Thread(new Runnable() {
+            GoTRestClient.getInstance(getContext()).characters(callback);
 
-                @Override
-                public void run() {
-                    String url = "http://ec2-52-18-202-124.eu-west-1.compute.amazonaws.com:3000/characters";
-
-                    URL obj = null;
-                    try {
-                        obj = new URL(url);
-                        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-                        con.setRequestMethod("GET");
-                        BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-                        String inputLine;
-                        StringBuffer response = new StringBuffer();
-                        while ((inputLine = in.readLine()) != null) {
-                            response.append(inputLine);
-                        }
-                        in.close();
-                        Type listType = new TypeToken<ArrayList<GoTCharacter>>() {
-                        }.getType();
-                        final List<GoTCharacter> characters = new Gson().fromJson(response.toString(), listType);
-                        GoTHousesListFragment.this.getActivity().runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                ArrayList<GoTCharacter.GoTHouse> hs = new ArrayList<GoTCharacter.GoTHouse>();
-                                for (int i = 0; i < characters.size(); i++) {
-                                    boolean b = false;
-                                    for (int j = 0; j < hs.size(); j++) {
-                                        if (hs.get(j).n.equalsIgnoreCase(characters.get(i).hn)) {
-                                            b = true;
-                                        }
-                                    }
-                                    if (!b) {
-                                        if (characters.get(i).hi != null && !characters.get(i).hi.isEmpty()) {
-                                            GoTCharacter.GoTHouse h = new GoTCharacter.GoTHouse();
-                                            h.i = characters.get(i).hi;
-                                            h.n = characters.get(i).hn;
-                                            h.u = characters.get(i).hu;
-                                            hs.add(h);
-                                            b = false;
-                                        }
-                                    }
-                                }
-                                adp.addAll(hs);
-                                adp.notifyDataSetChanged();
-                                pb.hide();
-                            }
-                        });
-                    } catch (IOException e) {
-                        Log.e(TAG, e.getLocalizedMessage());
-                    }
-                }
-            }).start();
             return rootView;
         }
-    }
-
-    static class GoTHouseAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
-
-        private final List<GoTCharacter.GoTHouse> gcs;
-        private Activity a;
-
-        public GoTHouseAdapter(Activity activity) {
-            this.gcs = new ArrayList<>();
-            a = activity;
-        }
-
-        void addAll(Collection<GoTCharacter.GoTHouse> collection) {
-            for (int i = 0; i < collection.size(); i++) {
-                gcs.add((GoTCharacter.GoTHouse) collection.toArray()[i]);
-            }
-        }
-
-        @Override
-        public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            return new GotCharacterViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.got_house_row, parent, false));
-        }
-
-        @Override
-        public void onBindViewHolder(final RecyclerView.ViewHolder holder, final int position) {
-            GotCharacterViewHolder gotCharacterViewHolder = (GotCharacterViewHolder) holder;
-            gotCharacterViewHolder.render(gcs.get(position));
-        }
-
-        @Override
-        public int getItemCount() {
-            return gcs.size();
-        }
-
-        class GotCharacterViewHolder extends RecyclerView.ViewHolder {
-
-            private static final String TAG = "GotCharacterViewHolder";
-            ImageView imp;
-
-            public GotCharacterViewHolder(View itemView) {
-                super(itemView);
-                imp = (ImageView) itemView.findViewById(R.id.ivBackground);
-            }
-
-            public void render(final GoTCharacter.GoTHouse goTHouse) {
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        URL url = null;
-                        try {
-                            url = new URL(goTHouse.u);
-                            final Bitmap bmp = BitmapFactory.decodeStream(url.openConnection().getInputStream());
-                            a.runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    imp.setImageBitmap(bmp);
-                                }
-                            });
-                        } catch (IOException e) {
-                            Log.e(TAG, e.getLocalizedMessage());
-                        }
-                    }
-                }).start();
-            }
-        }
-
     }
 
     public class SectionsPagerAdapter extends FragmentPagerAdapter {

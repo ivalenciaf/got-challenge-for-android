@@ -9,8 +9,13 @@ import android.util.Log;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.squareup.okhttp.Callback;
+import com.squareup.okhttp.Request;
+import com.squareup.okhttp.Response;
+
 import java.io.IOException;
-import java.net.URL;
+
+import es.npatarino.android.gotchallenge.net.GoTRestClient;
 
 public class DetailActivity extends AppCompatActivity {
 
@@ -37,25 +42,24 @@ public class DetailActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
 
-        new Thread(new Runnable() {
+        GoTRestClient.getInstance(this).getImage(i, new Callback() {
             @Override
-            public void run() {
-                URL url = null;
-                try {
-                    url = new URL(i);
-                    final Bitmap bmp = BitmapFactory.decodeStream(url.openConnection().getInputStream());
-                    DetailActivity.this.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            ivp.setImageBitmap(bmp);
-                            tvn.setText(n);
-                            tvd.setText(d);
-                        }
-                    });
-                } catch (IOException e) {
-                    Log.e(TAG, e.getLocalizedMessage());
-                }
+            public void onFailure(Request request, IOException e) {
+                Log.e(TAG, "Exception downloading character image", e);
             }
-        }).start();
+
+            @Override
+            public void onResponse(Response response) throws IOException {
+                final Bitmap bmp = BitmapFactory.decodeStream(response.body().byteStream());
+                DetailActivity.this.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        ivp.setImageBitmap(bmp);
+                        tvn.setText(n);
+                        tvd.setText(d);
+                    }
+                });
+            }
+        });
     }
 }
