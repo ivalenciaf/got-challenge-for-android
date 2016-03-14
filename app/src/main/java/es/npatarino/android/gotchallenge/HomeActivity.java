@@ -19,7 +19,6 @@ import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -83,7 +82,7 @@ public class HomeActivity extends AppCompatActivity {
                 Log.d(TAG, "Characters: " + mCharacters);
 
                 // Do a precache of all the images of the characters to make posible view them in offline mode
-                precacheImages();
+                GoTRestClient.getInstance(getContext()).precacheImagesInDisk(mCharacters);
 
                 adp.addAll(mCharacters);
                 ((FilterCharacterSearch) adp.getFilter()).setCharacters(mCharacters);
@@ -140,24 +139,6 @@ public class HomeActivity extends AppCompatActivity {
         @Override
         public boolean onQueryTextSubmit(String query) {
             return false;
-        }
-
-        private void precacheImages() {
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    GoTRestClient client = GoTRestClient.getInstance(getContext());
-
-                    for (GoTCharacter character : mCharacters) {
-                        try {
-                            client.getImage(character.getIu());
-                            client.getImage(character.getHu());
-                        } catch (IOException e) {
-                            Log.w(TAG, "Exception precaching images of character", e);
-                        }
-                    }
-                }
-            }).start();
         }
     }
 

@@ -2,28 +2,20 @@ package es.npatarino.android.gotchallenge;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Filter;
 import android.widget.Filterable;
-import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.squareup.okhttp.Callback;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.Response;
+import com.facebook.drawee.view.SimpleDraweeView;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
-import es.npatarino.android.gotchallenge.net.GoTRestClient;
 
 /**
  * Adapter of characters
@@ -32,14 +24,11 @@ public class GoTAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> im
 
     private List<GoTCharacter> gcs;
     private Activity a;
-    private GoTRestClient client;
     private Filter mFilter;
 
     public GoTAdapter(Activity activity) {
         this.gcs = new ArrayList<>();
         a = activity;
-
-        client = GoTRestClient.getInstance(a);
     }
 
     public void addAll(Collection<GoTCharacter> collection) {
@@ -91,37 +80,18 @@ public class GoTAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> im
 
     class GotCharacterViewHolder extends RecyclerView.ViewHolder {
 
-        private static final String TAG = "GotCharacterViewHolder";
-        ImageView imp;
+        SimpleDraweeView imp;
         TextView tvn;
 
         public GotCharacterViewHolder(View itemView) {
             super(itemView);
-            imp = (ImageView) itemView.findViewById(R.id.ivBackground);
+            imp = (SimpleDraweeView) itemView.findViewById(R.id.ivBackground);
             tvn = (TextView) itemView.findViewById(R.id.tv_name);
         }
 
         public void render(final GoTCharacter goTCharacter) {
-            client.getImage(goTCharacter.iu, new Callback() {
-                @Override
-                public void onFailure(Request request, IOException e) {
-                    Log.w(TAG, "Exception downloading image of character", e);
-                }
-
-                @Override
-                public void onResponse(Response response) throws IOException {
-                    if (response.isSuccessful()) {
-                        final Bitmap bmp = BitmapFactory.decodeStream(response.body().byteStream());
-                        a.runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                imp.setImageBitmap(bmp);
-                                tvn.setText(goTCharacter.n);
-                            }
-                        });
-                    }
-                }
-            });
+            tvn.setText(goTCharacter.n);
+            imp.setImageURI(Uri.parse(goTCharacter.iu));
         }
     }
 

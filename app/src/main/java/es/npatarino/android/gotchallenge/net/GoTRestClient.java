@@ -3,11 +3,11 @@ package es.npatarino.android.gotchallenge.net;
 import android.content.Context;
 import android.util.Log;
 
-import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.Request;
+import com.facebook.drawee.backends.pipeline.Fresco;
+import com.facebook.imagepipeline.core.ImagePipeline;
+import com.facebook.imagepipeline.request.ImageRequest;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 
 import es.npatarino.android.gotchallenge.GoTCharacter;
@@ -19,16 +19,21 @@ import retrofit.Response;
  * Client of the GoT rest services.
  */
 public class GoTRestClient {
+    private static final String TAG = "GoTRestClient";
+
     private static GoTRestClient instance;
-    private OkHttpClient mHttpClient;
+    private Context mContext;
+    private boolean mImagesPrecached = false;
+
 
     private GoTService service;
 
     private GoTRestClient(Context context) {
+        mContext = context;
+
         ServiceClientBuilder builder = new ServiceClientBuilder(context);
 
         service = builder.build(GoTService.class);
-        mHttpClient = builder.getOkHttpClient();
     }
 
     public static GoTRestClient getInstance(Context context) {
@@ -68,42 +73,38 @@ public class GoTRestClient {
     }
 
     /**
-     * Download an image from the GoT service synchronously
+     * Precache the images of the characters and houses in disk to make them available in offline mode.
+     * The client controls it's done only the first time the method is called.
      *
-     * @param imageUrl the url of the image to download
-     * @param callback the callback function to call after receiving the response
+     * @param characters the list of characters
      */
-    public void getImage(String imageUrl, com.squareup.okhttp.Callback callback) {
-        Request request = new Request.Builder()
-                .url(imageUrl)
-                .build();
-
-        mHttpClient.newCall(request).enqueue(callback);
+    public void precacheImagesInDisk(final List<GoTCharacter> characters) {
+        precacheImagesInDisk(characters, false);
     }
 
     /**
-     * Download an image from the GoT service synchronously
+     * Precache the images of the characters and houses in disk to make them available in offline mode.
+     * The client controls it's done only the first time the method is called.
      *
-     * @param imageUrl the url of the image to download
-     * @return the stream with the image
-     * @throws IOException in case of exception
+     * @param characters the list of characters
+     * @param force if true forces to do the precache even if is not the first time the method is called
      */
-    public InputStream getImage(String imageUrl) throws IOException {
-        InputStream image = null;
+    public void precacheImagesInDisk(final List<GoTCharacter> characters, boolean force) {
+        if ((!mImagesPrecached || force) && characters != null) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    Log.i(TAG, "Precaching images to disk");
+                    ImagePipeline pipeline = Fresco.getImagePipeline();
+                    for (GoTCharacter character : characters) {
+                        pipeline.prefetchToDiskCache(ImageRequest.fromUri(character.getIu()), mContext);
+                        pipeline.prefetchToDiskCache(ImageRequest.fromUri(character.getHu()), mContext);
+                    }
 
-        if (imageUrl != null && !imageUrl.isEmpty()) {
-            Request request = new Request.Builder()
-                    .url(imageUrl)
-                    .build();
-
-            com.squareup.okhttp.Response response = mHttpClient.newCall(request).execute();
-            if (response.isSuccessful()) {
-                image = response.body().byteStream();
-            } else {
-                Log.w("GoTRestClient", "Exception downloading image '" + imageUrl + "'" + response.message());
-            }
+                    mImagesPrecached = true;
+                    Log.d(TAG, "Precaching done");
+                }
+            }).start();
         }
-
-        return image;
     }
 }
