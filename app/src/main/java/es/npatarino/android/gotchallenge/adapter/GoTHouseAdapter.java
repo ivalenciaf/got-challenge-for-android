@@ -1,7 +1,10 @@
 package es.npatarino.android.gotchallenge.adapter;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -24,9 +27,11 @@ import es.npatarino.android.gotchallenge.view.HouseDetailActivity;
  */
 public class GoTHouseAdapter extends RecyclerView.Adapter<GoTHouseAdapter.GotCharacterViewHolder> {
 
+    private final Activity activity;
     private final List<GoTHouse> gcs;
 
-    public GoTHouseAdapter() {
+    public GoTHouseAdapter(Activity activity) {
+        this.activity = activity;
         this.gcs = new ArrayList<>();
     }
 
@@ -45,9 +50,17 @@ public class GoTHouseAdapter extends RecyclerView.Adapter<GoTHouseAdapter.GotCha
         holder.imp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(holder.itemView.getContext(), HouseDetailActivity.class);
+                Intent intent = new Intent(activity, HouseDetailActivity.class);
                 intent.putExtra(HouseDetailActivity.EXTRA_HOUSE, Parcels.wrap(holder.house));
-                holder.itemView.getContext().startActivity(intent);
+
+                ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(
+                        activity,
+                        holder.imp,
+                        activity.getString(R.string.transition_shared_image)
+                );
+
+                ActivityCompat.startActivity(activity, intent, options.toBundle());
+                //holder.itemView.getContext().startActivity(intent);
             }
         });
     }

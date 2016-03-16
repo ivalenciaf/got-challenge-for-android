@@ -114,7 +114,7 @@ public class HomeActivity extends AppCompatActivity {
             pb = (ContentLoadingProgressBar) rootView.findViewById(R.id.pb);
             rv = (RecyclerView) rootView.findViewById(R.id.rv);
 
-            adp = new GoTAdapter();
+            adp = new GoTAdapter(getActivity());
             rv.setLayoutManager(new LinearLayoutManager(getActivity()));
             rv.setHasFixedSize(true);
             rv.setAdapter(adp);
@@ -187,7 +187,7 @@ public class HomeActivity extends AppCompatActivity {
             pb = (ContentLoadingProgressBar) rootView.findViewById(R.id.pb);
             RecyclerView rv = (RecyclerView) rootView.findViewById(R.id.rv);
 
-            adp = new GoTHouseAdapter();
+            adp = new GoTHouseAdapter(getActivity());
             rv.setLayoutManager(new LinearLayoutManager(getActivity()));
             rv.setHasFixedSize(true);
             rv.setAdapter(adp);

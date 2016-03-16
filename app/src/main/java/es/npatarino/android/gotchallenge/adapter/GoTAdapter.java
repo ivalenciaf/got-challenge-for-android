@@ -1,7 +1,10 @@
 package es.npatarino.android.gotchallenge.adapter;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -28,10 +31,12 @@ import es.npatarino.android.gotchallenge.view.FilterCharacterSearch;
  */
 public class GoTAdapter extends RecyclerView.Adapter<GoTAdapter.GotCharacterViewHolder> implements Filterable {
 
+    private final Activity activity;
     private List<GoTCharacter> gcs;
     private Filter mFilter;
 
-    public GoTAdapter() {
+    public GoTAdapter(Activity activity) {
+        this.activity = activity;
         this.gcs = new ArrayList<>();
     }
 
@@ -58,9 +63,17 @@ public class GoTAdapter extends RecyclerView.Adapter<GoTAdapter.GotCharacterView
         holder.imp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
-                Intent intent = new Intent(holder.itemView.getContext(), DetailActivity.class);
+                Intent intent = new Intent(activity, DetailActivity.class);
                 intent.putExtra(DetailActivity.EXTRA_CHARACTER, Parcels.wrap(character));
-                holder.itemView.getContext().startActivity(intent);
+
+                ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(
+                        activity,
+                        holder.imp,
+                        activity.getString(R.string.transition_shared_image)
+                );
+
+                ActivityCompat.startActivity(activity, intent, options.toBundle());
+                //holder.itemView.getContext().startActivity(intent);
             }
         });
     }
