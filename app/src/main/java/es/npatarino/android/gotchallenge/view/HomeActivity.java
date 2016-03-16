@@ -1,4 +1,4 @@
-package es.npatarino.android.gotchallenge;
+package es.npatarino.android.gotchallenge.view;
 
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
@@ -19,9 +19,15 @@ import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
+import es.npatarino.android.gotchallenge.R;
+import es.npatarino.android.gotchallenge.adapter.GoTAdapter;
+import es.npatarino.android.gotchallenge.adapter.GoTHouseAdapter;
+import es.npatarino.android.gotchallenge.model.GoTCharacter;
+import es.npatarino.android.gotchallenge.model.GoTHouse;
 import es.npatarino.android.gotchallenge.net.GoTRestClient;
 import retrofit.Callback;
 import retrofit.Response;
@@ -108,7 +114,7 @@ public class HomeActivity extends AppCompatActivity {
             pb = (ContentLoadingProgressBar) rootView.findViewById(R.id.pb);
             rv = (RecyclerView) rootView.findViewById(R.id.rv);
 
-            adp = new GoTAdapter(getActivity());
+            adp = new GoTAdapter();
             rv.setLayoutManager(new LinearLayoutManager(getActivity()));
             rv.setHasFixedSize(true);
             rv.setAdapter(adp);
@@ -154,23 +160,10 @@ public class HomeActivity extends AppCompatActivity {
 
                 Log.d(TAG, "Characters: " + characters);
 
-                ArrayList<GoTCharacter.GoTHouse> hs = new ArrayList<GoTCharacter.GoTHouse>();
-                for (int i = 0; i < characters.size(); i++) {
-                    boolean b = false;
-                    for (int j = 0; j < hs.size(); j++) {
-                        if (hs.get(j).n.equalsIgnoreCase(characters.get(i).hn)) {
-                            b = true;
-                        }
-                    }
-                    if (!b) {
-                        if (characters.get(i).hi != null && !characters.get(i).hi.isEmpty()) {
-                            GoTCharacter.GoTHouse h = new GoTCharacter.GoTHouse();
-                            h.i = characters.get(i).hi;
-                            h.n = characters.get(i).hn;
-                            h.u = characters.get(i).hu;
-                            hs.add(h);
-                            b = false;
-                        }
+                Set<GoTHouse> hs = new TreeSet<>();
+                for (GoTCharacter character : characters) {
+                    if (character.getHouse() != null) {
+                        hs.add(character.getHouse());
                     }
                 }
                 adp.addAll(hs);
@@ -194,7 +187,7 @@ public class HomeActivity extends AppCompatActivity {
             pb = (ContentLoadingProgressBar) rootView.findViewById(R.id.pb);
             RecyclerView rv = (RecyclerView) rootView.findViewById(R.id.rv);
 
-            adp = new GoTHouseAdapter(getActivity());
+            adp = new GoTHouseAdapter();
             rv.setLayoutManager(new LinearLayoutManager(getActivity()));
             rv.setHasFixedSize(true);
             rv.setAdapter(adp);

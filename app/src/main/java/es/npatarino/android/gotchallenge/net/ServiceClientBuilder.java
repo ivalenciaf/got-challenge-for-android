@@ -5,6 +5,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import com.squareup.okhttp.Cache;
 import com.squareup.okhttp.Interceptor;
 import com.squareup.okhttp.OkHttpClient;
@@ -14,8 +15,12 @@ import com.squareup.okhttp.logging.HttpLoggingInterceptor;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
+import es.npatarino.android.gotchallenge.model.GoTCharacter;
+import es.npatarino.android.gotchallenge.model.GoTCharacterTypeAdapter;
 import retrofit.Converter;
 import retrofit.GsonConverterFactory;
 import retrofit.Retrofit;
@@ -45,7 +50,11 @@ public class ServiceClientBuilder {
         setupHttpClient(new OkHttpClient());
         setupLogging();
         setupCache(context);
+
+        Type charactersType = new TypeToken<ArrayList<GoTCharacter>>() {
+        }.getType();
         GsonBuilder builder = new GsonBuilder();
+        builder.registerTypeAdapter(GoTCharacter.class, new GoTCharacterTypeAdapter());
         converterFactory = GsonConverterFactory.create(builder.create());
     }
 
@@ -62,14 +71,16 @@ public class ServiceClientBuilder {
     }
 
     private void setupCache(final Context context) {
-        File httpCacheDirectory = new File(context.getCacheDir(), "responses");
-        Cache httpResponseCache = new Cache(httpCacheDirectory, 20 * 1024 * 1024);
-        okHttpClient.setCache(httpResponseCache);
+        if (context != null) {
+            File httpCacheDirectory = new File(context.getCacheDir(), "responses");
+            Cache httpResponseCache = new Cache(httpCacheDirectory, 20 * 1024 * 1024);
+            okHttpClient.setCache(httpResponseCache);
 
-        RequestCacheInterceptor cacheInterceptor = new RequestCacheInterceptor(context);
+            RequestCacheInterceptor cacheInterceptor = new RequestCacheInterceptor(context);
 
-        okHttpClient.networkInterceptors().add(cacheInterceptor);
-        okHttpClient.interceptors().add(cacheInterceptor);
+            okHttpClient.networkInterceptors().add(cacheInterceptor);
+            okHttpClient.interceptors().add(cacheInterceptor);
+        }
     }
 
     public ServiceClientBuilder baseUrl(String url) {

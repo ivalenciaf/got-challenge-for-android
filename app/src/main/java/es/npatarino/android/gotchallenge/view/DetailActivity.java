@@ -1,4 +1,4 @@
-package es.npatarino.android.gotchallenge;
+package es.npatarino.android.gotchallenge.view;
 
 import android.net.Uri;
 import android.os.Bundle;
@@ -8,10 +8,15 @@ import android.widget.TextView;
 
 import com.facebook.drawee.view.SimpleDraweeView;
 
+import org.parceler.Parcels;
+
+import es.npatarino.android.gotchallenge.R;
+import es.npatarino.android.gotchallenge.model.GoTCharacter;
+
 public class DetailActivity extends AppCompatActivity {
-
-
     private static final String TAG = "DetailActivity";
+
+    public static final String EXTRA_CHARACTER = "character";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,19 +27,17 @@ public class DetailActivity extends AppCompatActivity {
         final TextView tvn = (TextView) findViewById(R.id.tv_name);
         final TextView tvd = (TextView) findViewById(R.id.tv_description);
 
-        final String d = getIntent().getStringExtra("description");
-        final String n = getIntent().getStringExtra("name");
-        final String i = getIntent().getStringExtra("imageUrl");
+        GoTCharacter character = Parcels.unwrap(getIntent().getParcelableExtra(EXTRA_CHARACTER));
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.t);
-        toolbar.setTitle(n);
+        toolbar.setTitle(character.getName());
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
 
-        tvn.setText(n);
-        tvd.setText(d);
-        ivp.setImageURI(Uri.parse(i));
+        tvn.setText(character.getName());
+        tvd.setText(character.getDescription());
+        ivp.setImageURI(Uri.parse(character.getImageUrl()));
     }
 }

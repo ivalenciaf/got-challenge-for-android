@@ -1,9 +1,12 @@
-package es.npatarino.android.gotchallenge;
+package es.npatarino.android.gotchallenge.view;
 
 import android.widget.Filter;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import es.npatarino.android.gotchallenge.adapter.GoTAdapter;
+import es.npatarino.android.gotchallenge.model.GoTCharacter;
 
 /**
  * Custom search filter for the characters adapter.
@@ -35,7 +38,7 @@ public class FilterCharacterSearch extends Filter {
 
             String name;
             for (final GoTCharacter character : mCharacters) {
-                name = character.getN().toLowerCase();
+                name = character.getName().toLowerCase();
                 if (name.contains(filterPattern)) {
                     mFiltered.add(character);
                 }

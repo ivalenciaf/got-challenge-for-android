@@ -4,17 +4,13 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 
+import es.npatarino.android.gotchallenge.model.GoTCharacter;
 import es.npatarino.android.gotchallenge.net.GoTRestClient;
-import retrofit.Callback;
-import retrofit.Response;
-import retrofit.Retrofit;
 
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
 
 /**
  * Tests of the GoT services.
@@ -24,7 +20,7 @@ public class GoTServiceTest {
 
     @Before
     public void setUp() {
-        client = GoTRestClient.getInstance();
+        client = GoTRestClient.getInstance(null);
     }
 
     @Test
@@ -33,35 +29,11 @@ public class GoTServiceTest {
 
         List<GoTCharacter> characters = client.characters();
 
-        System.out.println("Characters: " + characters);
-
         assertNotNull(characters);
         assertNotEquals(0, characters.size());
-    }
 
-    @Test
-    public void testDownloadImage() throws IOException {
-        InputStream image = client.getImage("https://s3-eu-west-1.amazonaws.com/npatarino/got/stark.jpg");
-
-        System.out.println("Image: " + image);
-
-        assertNotNull(image);
-    }
-
-    private Callback<List<GoTCharacter>> callback = new Callback<List<GoTCharacter>>() {
-        @Override
-        public void onResponse(Response<List<GoTCharacter>> response, Retrofit retrofit) {
-            List<GoTCharacter> characters = response.body();
-
-            System.out.println("Characters: " + characters);
-
-            assertNotNull(characters);
-            assertNotEquals(0, characters.size());
+        for (GoTCharacter character : characters) {
+            System.out.println(character);
         }
-
-        @Override
-        public void onFailure(Throwable t) {
-            fail("Exception calling movements service.");
-        }
-    };
+    }
 }

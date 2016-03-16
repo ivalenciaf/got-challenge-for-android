@@ -10,7 +10,7 @@ import com.facebook.imagepipeline.request.ImageRequest;
 import java.io.IOException;
 import java.util.List;
 
-import es.npatarino.android.gotchallenge.GoTCharacter;
+import es.npatarino.android.gotchallenge.model.GoTCharacter;
 import retrofit.Call;
 import retrofit.Callback;
 import retrofit.Response;
@@ -49,7 +49,7 @@ public class GoTRestClient {
      *
      * @param callback the callback function to call after receiving the response from the rest service.
      */
-    public void characters(Callback<List<GoTCharacter>> callback) {
+    public void characters(final Callback<List<GoTCharacter>> callback) {
         service.characters().enqueue(callback);
     }
 
@@ -97,8 +97,8 @@ public class GoTRestClient {
                     Log.i(TAG, "Precaching images to disk");
                     ImagePipeline pipeline = Fresco.getImagePipeline();
                     for (GoTCharacter character : characters) {
-                        pipeline.prefetchToDiskCache(ImageRequest.fromUri(character.getIu()), mContext);
-                        pipeline.prefetchToDiskCache(ImageRequest.fromUri(character.getHu()), mContext);
+                        pipeline.prefetchToDiskCache(ImageRequest.fromUri(character.getImageUrl()), mContext);
+                        pipeline.prefetchToDiskCache(ImageRequest.fromUri(character.getImageUrl()), mContext);
                     }
 
                     mImagesPrecached = true;

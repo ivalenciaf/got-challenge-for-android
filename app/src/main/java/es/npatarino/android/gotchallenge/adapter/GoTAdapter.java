@@ -1,6 +1,5 @@
-package es.npatarino.android.gotchallenge;
+package es.npatarino.android.gotchallenge.adapter;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.support.v7.widget.RecyclerView;
@@ -13,28 +12,31 @@ import android.widget.TextView;
 
 import com.facebook.drawee.view.SimpleDraweeView;
 
+import org.parceler.Parcels;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import es.npatarino.android.gotchallenge.R;
+import es.npatarino.android.gotchallenge.model.GoTCharacter;
+import es.npatarino.android.gotchallenge.view.DetailActivity;
+import es.npatarino.android.gotchallenge.view.FilterCharacterSearch;
+
 /**
  * Adapter of characters
  */
-public class GoTAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements Filterable {
+public class GoTAdapter extends RecyclerView.Adapter<GoTAdapter.GotCharacterViewHolder> implements Filterable {
 
     private List<GoTCharacter> gcs;
-    private Activity a;
     private Filter mFilter;
 
-    public GoTAdapter(Activity activity) {
+    public GoTAdapter() {
         this.gcs = new ArrayList<>();
-        a = activity;
     }
 
     public void addAll(Collection<GoTCharacter> collection) {
-        for (int i = 0; i < collection.size(); i++) {
-            gcs.add((GoTCharacter) collection.toArray()[i]);
-        }
+        gcs.addAll(collection);
     }
 
     public void clear() {
@@ -44,22 +46,21 @@ public class GoTAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> im
     }
 
     @Override
-    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public GoTAdapter.GotCharacterViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         return new GotCharacterViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.got_character_row, parent, false));
     }
 
     @Override
-    public void onBindViewHolder(final RecyclerView.ViewHolder holder, final int position) {
-        GotCharacterViewHolder gotCharacterViewHolder = (GotCharacterViewHolder) holder;
-        gotCharacterViewHolder.render(gcs.get(position));
-        ((GotCharacterViewHolder) holder).imp.setOnClickListener(new View.OnClickListener() {
+    public void onBindViewHolder(final GoTAdapter.GotCharacterViewHolder holder, final int position) {
+        final GoTCharacter character = gcs.get(position);
+
+        holder.render(character);
+        holder.imp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
-                Intent intent = new Intent(((GotCharacterViewHolder) holder).itemView.getContext(), DetailActivity.class);
-                intent.putExtra("description", gcs.get(position).d);
-                intent.putExtra("name", gcs.get(position).n);
-                intent.putExtra("imageUrl", gcs.get(position).iu);
-                ((GotCharacterViewHolder) holder).itemView.getContext().startActivity(intent);
+                Intent intent = new Intent(holder.itemView.getContext(), DetailActivity.class);
+                intent.putExtra(DetailActivity.EXTRA_CHARACTER, Parcels.wrap(character));
+                holder.itemView.getContext().startActivity(intent);
             }
         });
     }
@@ -78,7 +79,7 @@ public class GoTAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> im
         return mFilter;
     }
 
-    class GotCharacterViewHolder extends RecyclerView.ViewHolder {
+    public static class GotCharacterViewHolder extends RecyclerView.ViewHolder {
 
         SimpleDraweeView imp;
         TextView tvn;
@@ -89,9 +90,9 @@ public class GoTAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> im
             tvn = (TextView) itemView.findViewById(R.id.tv_name);
         }
 
-        public void render(final GoTCharacter goTCharacter) {
-            tvn.setText(goTCharacter.n);
-            imp.setImageURI(Uri.parse(goTCharacter.iu));
+        public void render(final GoTCharacter character) {
+            tvn.setText(character.getName());
+            imp.setImageURI(Uri.parse(character.getImageUrl()));
         }
     }
 
