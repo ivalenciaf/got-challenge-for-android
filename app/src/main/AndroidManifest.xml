@@ -13,9 +13,6 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".view.DetailActivity"
-            android:parentActivityName=".view.HomeActivity"></activity>
-        <activity
             android:name=".view.HomeActivity"
             android:label="@string/title_activity_home"
             android:theme="@style/AppTheme">
@@ -25,7 +22,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".view.HouseDetailActivity"></activity>
+        <activity
+            android:name=".view.DetailActivity"
+            android:parentActivityName=".view.HomeActivity" />
+        <activity
+            android:name=".view.HouseDetailActivity"
+            android:parentActivityName=".view.HomeActivity" />
     </application>
 
 </manifest>

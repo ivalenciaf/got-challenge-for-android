@@ -4,6 +4,8 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
@@ -80,6 +82,23 @@ public class HouseDetailActivity extends AppCompatActivity {
         return filtered;
     }
 
+    private void startDetailActivity(GoTCharacter character, View sharedElement) {
+        Intent intent = new Intent(this, DetailActivity.class);
+        intent.putExtra(DetailActivity.EXTRA_CHARACTER, Parcels.wrap(character));
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(
+                    this,
+                    sharedElement,
+                    getString(R.string.transition_shared_image)
+            );
+
+            ActivityCompat.startActivity(this, intent, options.toBundle());
+        } else {
+            startActivity(intent);
+        }
+    }
+
     class CharacterAdapter extends BaseAdapter {
         private List<GoTCharacter> mCharacters;
 
@@ -102,7 +121,7 @@ public class HouseDetailActivity extends AppCompatActivity {
         public View getView(int position, View convertView, ViewGroup parent) {
             final GoTCharacter character = mCharacters.get(position);
 
-            SquareImageView imageView;
+            final SquareImageView imageView;
             if (convertView == null) {
                 imageView = new SquareImageView(HouseDetailActivity.this);
                 imageView.setLayoutParams(new GridView.LayoutParams(GridView.LayoutParams.MATCH_PARENT, GridView.LayoutParams.MATCH_PARENT));
@@ -115,9 +134,7 @@ public class HouseDetailActivity extends AppCompatActivity {
             imageView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(final View v) {
-                    Intent intent = new Intent(HouseDetailActivity.this, DetailActivity.class);
-                    intent.putExtra(DetailActivity.EXTRA_CHARACTER, Parcels.wrap(character));
-                    startActivity(intent);
+                    startDetailActivity(character, imageView);
                 }
             });
 

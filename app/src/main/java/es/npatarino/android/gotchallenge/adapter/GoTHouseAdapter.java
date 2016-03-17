@@ -3,6 +3,7 @@ package es.npatarino.android.gotchallenge.adapter;
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v7.widget.RecyclerView;
@@ -50,17 +51,7 @@ public class GoTHouseAdapter extends RecyclerView.Adapter<GoTHouseAdapter.GotCha
         holder.imp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(activity, HouseDetailActivity.class);
-                intent.putExtra(HouseDetailActivity.EXTRA_HOUSE, Parcels.wrap(holder.house));
-
-                ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(
-                        activity,
-                        holder.imp,
-                        activity.getString(R.string.transition_shared_image)
-                );
-
-                ActivityCompat.startActivity(activity, intent, options.toBundle());
-                //holder.itemView.getContext().startActivity(intent);
+                startDetailActivity(holder.house, holder.imp);
             }
         });
     }
@@ -68,6 +59,23 @@ public class GoTHouseAdapter extends RecyclerView.Adapter<GoTHouseAdapter.GotCha
     @Override
     public int getItemCount() {
         return gcs.size();
+    }
+
+    private void startDetailActivity(GoTHouse house, View sharedElement) {
+        Intent intent = new Intent(activity, HouseDetailActivity.class);
+        intent.putExtra(HouseDetailActivity.EXTRA_HOUSE, Parcels.wrap(house));
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(
+                    activity,
+                    sharedElement,
+                    activity.getString(R.string.transition_shared_image)
+            );
+
+            ActivityCompat.startActivity(activity, intent, options.toBundle());
+        } else {
+            activity.startActivity(intent);
+        }
     }
 
     public static class GotCharacterViewHolder extends RecyclerView.ViewHolder {

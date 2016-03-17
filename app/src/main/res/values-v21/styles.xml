@@ -15,8 +15,10 @@
         <item name="android:windowAllowReturnTransitionOverlap">true</item>
         <item name="android:windowEnterTransition">@android:transition/slide_right</item>
         <item name="android:windowExitTransition">@android:transition/slide_left</item>
-        <item name="android:windowSharedElementEnterTransition">@android:transition/move</item>
-        <item name="android:windowSharedElementExitTransition">@android:transition/move</item>
+        <item name="android:windowSharedElementEnterTransition">@transition/transition_photo_image
+        </item>
+        <item name="android:windowSharedElementExitTransition">@transition/transition_photo_image
+        </item>
 
     </style>
 </resources>

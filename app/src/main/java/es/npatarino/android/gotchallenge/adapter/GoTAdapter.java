@@ -3,6 +3,7 @@ package es.npatarino.android.gotchallenge.adapter;
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v7.widget.RecyclerView;
@@ -63,17 +64,7 @@ public class GoTAdapter extends RecyclerView.Adapter<GoTAdapter.GotCharacterView
         holder.imp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
-                Intent intent = new Intent(activity, DetailActivity.class);
-                intent.putExtra(DetailActivity.EXTRA_CHARACTER, Parcels.wrap(character));
-
-                ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(
-                        activity,
-                        holder.imp,
-                        activity.getString(R.string.transition_shared_image)
-                );
-
-                ActivityCompat.startActivity(activity, intent, options.toBundle());
-                //holder.itemView.getContext().startActivity(intent);
+                startDetailActivity(character, holder.imp);
             }
         });
     }
@@ -106,6 +97,23 @@ public class GoTAdapter extends RecyclerView.Adapter<GoTAdapter.GotCharacterView
         public void render(final GoTCharacter character) {
             tvn.setText(character.getName());
             imp.setImageURI(Uri.parse(character.getImageUrl()));
+        }
+    }
+
+    private void startDetailActivity(GoTCharacter character, View sharedElement) {
+        Intent intent = new Intent(activity, DetailActivity.class);
+        intent.putExtra(DetailActivity.EXTRA_CHARACTER, Parcels.wrap(character));
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(
+                    activity,
+                    sharedElement,
+                    activity.getString(R.string.transition_shared_image)
+            );
+
+            ActivityCompat.startActivity(activity, intent, options.toBundle());
+        } else {
+            activity.startActivity(intent);
         }
     }
 
