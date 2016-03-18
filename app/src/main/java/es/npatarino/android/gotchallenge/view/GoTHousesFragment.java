@@ -10,9 +10,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
 
 import es.npatarino.android.gotchallenge.R;
 import es.npatarino.android.gotchallenge.adapter.GoTHouseAdapter;
@@ -36,14 +35,8 @@ public class GoTHousesFragment extends Fragment {
         public void onResponse(Response<List<GoTCharacter>> response, Retrofit retrofit) {
             List<GoTCharacter> characters = response.body();
 
-            Log.d(TAG, "Characters: " + characters);
+            Collection<GoTHouse> hs = GoTHouse.housesFromCharacters(characters);
 
-            Set<GoTHouse> hs = new TreeSet<>();
-            for (GoTCharacter character : characters) {
-                if (character.getHouse() != null) {
-                    hs.add(character.getHouse());
-                }
-            }
             mAdapter.addAll(hs);
             mAdapter.notifyDataSetChanged();
             mProgress.hide();

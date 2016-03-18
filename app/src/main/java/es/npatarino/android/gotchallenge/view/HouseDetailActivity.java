@@ -17,7 +17,6 @@ import com.facebook.drawee.view.SimpleDraweeView;
 
 import org.parceler.Parcels;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import es.npatarino.android.gotchallenge.R;
@@ -59,7 +58,7 @@ public class HouseDetailActivity extends AppCompatActivity {
         client.characters(new Callback<List<GoTCharacter>>() {
             @Override
             public void onResponse(Response<List<GoTCharacter>> response, Retrofit retrofit) {
-                CharacterAdapter adapter = new CharacterAdapter(filter(house.getId(), response.body()));
+                CharacterAdapter adapter = new CharacterAdapter((List<GoTCharacter>) GoTHouse.charactersOfHouse(house.getId(), response.body()));
                 grid.setAdapter(adapter);
             }
 
@@ -68,18 +67,6 @@ public class HouseDetailActivity extends AppCompatActivity {
                 // Trace the error
             }
         });
-    }
-
-    private List<GoTCharacter> filter(String houseId, List<GoTCharacter> characters) {
-        List<GoTCharacter> filtered = new ArrayList<>();
-
-        for (GoTCharacter character : characters) {
-            if (character.getHouse() != null && character.getHouse().getId().equals(houseId)) {
-                filtered.add(character);
-            }
-        }
-
-        return filtered;
     }
 
     private void startDetailActivity(GoTCharacter character, View sharedElement) {

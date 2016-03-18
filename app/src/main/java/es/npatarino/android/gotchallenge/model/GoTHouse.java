@@ -1,7 +1,10 @@
 package es.npatarino.android.gotchallenge.model;
 
+import android.support.annotation.NonNull;
+
 import org.parceler.Parcel;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Set;
 import java.util.TreeSet;
@@ -60,11 +63,23 @@ public class GoTHouse implements Comparable<GoTHouse> {
         return hs;
     }
 
+    public static Collection<GoTCharacter> charactersOfHouse(String houseId, Collection<GoTCharacter> characters) {
+        Collection<GoTCharacter> filtered = new ArrayList<>();
+
+        for (GoTCharacter character : characters) {
+            if (character.getHouse() != null && character.getHouse().getId().equals(houseId)) {
+                filtered.add(character);
+            }
+        }
+
+        return filtered;
+    }
+
     @Override
-    public int compareTo(GoTHouse another) {
+    public int compareTo(@NonNull GoTHouse another) {
         int c = -1;
 
-        if (another != null && id != null) {
+        if (id != null) {
             c = id.compareTo(another.getId());
         }
 
