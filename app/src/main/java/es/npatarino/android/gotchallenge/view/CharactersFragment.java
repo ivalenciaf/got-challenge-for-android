@@ -16,7 +16,7 @@ import android.view.ViewGroup;
 import java.util.List;
 
 import es.npatarino.android.gotchallenge.R;
-import es.npatarino.android.gotchallenge.adapter.GoTAdapter;
+import es.npatarino.android.gotchallenge.adapter.CharacterAdapter;
 import es.npatarino.android.gotchallenge.model.GoTCharacter;
 import es.npatarino.android.gotchallenge.net.GoTRestClient;
 import retrofit.Callback;
@@ -26,19 +26,18 @@ import retrofit.Retrofit;
 /**
  * Fragment with the list of characters
  */
-public class GoTCharactersFragment extends Fragment implements SearchView.OnQueryTextListener {
+public class CharactersFragment extends Fragment implements SearchView.OnQueryTextListener {
 
-    private static final String TAG = "GoTCharactersFragment";
+    private static final String TAG = "CharactersFragment";
 
     private RecyclerView mRecyclerView;
-    private List<GoTCharacter> mCharacters;
-    private GoTAdapter mAdapter;
+    private CharacterAdapter mAdapter;
     private ContentLoadingProgressBar mProgress;
 
-    private Callback<List<GoTCharacter>> callback = new Callback<List<GoTCharacter>>() {
+    private final Callback<List<GoTCharacter>> mCallback = new Callback<List<GoTCharacter>>() {
         @Override
         public void onResponse(Response<List<GoTCharacter>> response, Retrofit retrofit) {
-            mCharacters = response.body();
+            List<GoTCharacter> mCharacters = response.body();
 
             Log.d(TAG, "Characters: " + mCharacters);
 
@@ -46,7 +45,7 @@ public class GoTCharactersFragment extends Fragment implements SearchView.OnQuer
             GoTRestClient.getInstance(getContext()).precacheImagesInDisk(mCharacters);
 
             mAdapter.addAll(mCharacters);
-            ((FilterCharacterSearch) mAdapter.getFilter()).setCharacters(mCharacters);
+            ((CharacterSearchFilter) mAdapter.getFilter()).setCharacters(mCharacters);
             mAdapter.notifyDataSetChanged();
             mProgress.hide();
         }
@@ -57,7 +56,7 @@ public class GoTCharactersFragment extends Fragment implements SearchView.OnQuer
         }
     };
 
-    public GoTCharactersFragment() {
+    public CharactersFragment() {
     }
 
     @Override
@@ -69,12 +68,12 @@ public class GoTCharactersFragment extends Fragment implements SearchView.OnQuer
         mProgress = (ContentLoadingProgressBar) rootView.findViewById(R.id.pb);
         mRecyclerView = (RecyclerView) rootView.findViewById(R.id.characters);
 
-        mAdapter = new GoTAdapter(getActivity());
+        mAdapter = new CharacterAdapter(getActivity());
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.setAdapter(mAdapter);
 
-        GoTRestClient.getInstance(getContext()).characters(callback);
+        GoTRestClient.getInstance(getContext()).characters(mCallback);
 
         return rootView;
     }
@@ -100,5 +99,12 @@ public class GoTCharactersFragment extends Fragment implements SearchView.OnQuer
     @Override
     public boolean onQueryTextSubmit(String query) {
         return false;
+    }
+
+    /**
+     * Contract of characters
+     */
+    public interface CharacterContract {
+        void onCharacterClick(GoTCharacter character, View sharedElement);
     }
 }

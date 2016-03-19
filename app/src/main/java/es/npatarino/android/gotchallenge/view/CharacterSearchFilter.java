@@ -5,18 +5,18 @@ import android.widget.Filter;
 import java.util.ArrayList;
 import java.util.List;
 
-import es.npatarino.android.gotchallenge.adapter.GoTAdapter;
+import es.npatarino.android.gotchallenge.adapter.CharacterAdapter;
 import es.npatarino.android.gotchallenge.model.GoTCharacter;
 
 /**
  * Custom search filter for the characters adapter.
  */
-public class FilterCharacterSearch extends Filter {
-    private GoTAdapter mAdapter;
+public class CharacterSearchFilter extends Filter {
+    private CharacterAdapter mAdapter;
     private List<GoTCharacter> mCharacters;
     private List<GoTCharacter> mFiltered;
 
-    public FilterCharacterSearch(GoTAdapter adapter, List<GoTCharacter> characters) {
+    public CharacterSearchFilter(CharacterAdapter adapter, List<GoTCharacter> characters) {
         this.mAdapter = adapter;
         this.mCharacters = characters;
         mFiltered = new ArrayList<>();

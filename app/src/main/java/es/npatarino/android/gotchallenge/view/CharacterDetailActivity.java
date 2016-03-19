@@ -13,21 +13,19 @@ import org.parceler.Parcels;
 import es.npatarino.android.gotchallenge.R;
 import es.npatarino.android.gotchallenge.model.GoTCharacter;
 
-public class DetailActivity extends AppCompatActivity {
-    private static final String TAG = "DetailActivity";
-
+public class CharacterDetailActivity extends AppCompatActivity {
     public static final String EXTRA_CHARACTER = "character";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_detail);
+        setContentView(R.layout.activity_character_detail);
 
         final SimpleDraweeView ivp = (SimpleDraweeView) findViewById(R.id.iv_photo);
         final TextView tvn = (TextView) findViewById(R.id.tv_name);
         final TextView tvd = (TextView) findViewById(R.id.tv_description);
 
-        GoTCharacter character = Parcels.unwrap(getIntent().getParcelableExtra(EXTRA_CHARACTER));
+        final GoTCharacter character = Parcels.unwrap(getIntent().getParcelableExtra(EXTRA_CHARACTER));
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.t);
         toolbar.setTitle(character.getName());

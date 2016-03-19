@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context=".view.DetailActivity">
+    tools:context=".view.CharacterDetailActivity">
 
     <include layout="@layout/photo_toolbar" />
 

@@ -1,5 +1,6 @@
 package es.npatarino.android.gotchallenge;
 
+import android.support.test.espresso.contrib.RecyclerViewActions;
 import android.support.test.filters.LargeTest;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
@@ -11,6 +12,7 @@ import org.junit.runner.RunWith;
 import es.npatarino.android.gotchallenge.view.HouseDetailActivity;
 
 import static android.support.test.espresso.Espresso.onData;
+import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
@@ -33,13 +35,11 @@ public class HouseDetailTest extends TestStub {
     }
 
     @Test
-    public void gridViewDisplaysAllCharacters() {
+    public void allCharactersOfHouseDisplayed() {
         startHouseDetailActiviy(mActivityRule);
 
-        //onView(withId(R.id.grid)).check(matches(isDisplayed()));
-        onData(anything())
-                .inAdapterView(withId(R.id.grid))
-                .atPosition(HOUSE_CHARACTERS_NUM - 1)
+        onView(withId(R.id.characters))
+                .perform(RecyclerViewActions.scrollToPosition(HOUSE_CHARACTERS_NUM - 1))
                 .check(matches(isDisplayed()));
     }
 }

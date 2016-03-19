@@ -12,7 +12,7 @@ import org.parceler.Parcels;
 
 import es.npatarino.android.gotchallenge.model.GoTCharacter;
 import es.npatarino.android.gotchallenge.model.GoTHouse;
-import es.npatarino.android.gotchallenge.view.DetailActivity;
+import es.npatarino.android.gotchallenge.view.CharacterDetailActivity;
 import es.npatarino.android.gotchallenge.view.HouseDetailActivity;
 
 import static android.support.test.espresso.Espresso.onView;
@@ -53,13 +53,13 @@ public class TestStub {
     }
 
     /**
-     * Starts DetailActivity with a stub character model.
+     * Starts CharacterDetailActivity with a stub character model.
      *
      * @param activityTestRule the rule that launch the activity
      */
     protected void startCharacterDetailActiviy(ActivityTestRule activityTestRule) {
         Intent intent = new Intent();
-        intent.putExtra(DetailActivity.EXTRA_CHARACTER, Parcels.wrap(character));
+        intent.putExtra(CharacterDetailActivity.EXTRA_CHARACTER, Parcels.wrap(character));
 
         activityTestRule.launchActivity(intent);
     }

@@ -8,7 +8,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import es.npatarino.android.gotchallenge.view.DetailActivity;
+import es.npatarino.android.gotchallenge.view.CharacterDetailActivity;
 
 import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
@@ -21,10 +21,10 @@ import static android.support.test.espresso.matcher.ViewMatchers.withText;
  */
 @RunWith(AndroidJUnit4.class)
 @LargeTest
-public class DetailActivityTest extends TestStub {
+public class CharacterDetailActivityTest extends TestStub {
 
     @Rule
-    public ActivityTestRule<DetailActivity> mActivityRule = new ActivityTestRule<>(DetailActivity.class, true, false);
+    public ActivityTestRule<CharacterDetailActivity> mActivityRule = new ActivityTestRule<>(CharacterDetailActivity.class, true, false);
 
     @Test
     public void detailTitle() {

@@ -24,19 +24,20 @@ import java.util.List;
 
 import es.npatarino.android.gotchallenge.R;
 import es.npatarino.android.gotchallenge.model.GoTCharacter;
-import es.npatarino.android.gotchallenge.view.DetailActivity;
-import es.npatarino.android.gotchallenge.view.FilterCharacterSearch;
+import es.npatarino.android.gotchallenge.view.CharacterDetailActivity;
+import es.npatarino.android.gotchallenge.view.CharacterSearchFilter;
+import es.npatarino.android.gotchallenge.view.CharactersFragment;
 
 /**
  * Adapter of characters
  */
-public class GoTAdapter extends RecyclerView.Adapter<GoTAdapter.GotCharacterViewHolder> implements Filterable {
+public class CharacterAdapter extends RecyclerView.Adapter<CharacterAdapter.GotCharacterViewHolder> implements Filterable {
 
     private final Activity activity;
     private List<GoTCharacter> gcs;
     private Filter mFilter;
 
-    public GoTAdapter(Activity activity) {
+    public CharacterAdapter(Activity activity) {
         this.activity = activity;
         this.gcs = new ArrayList<>();
     }
@@ -52,19 +53,21 @@ public class GoTAdapter extends RecyclerView.Adapter<GoTAdapter.GotCharacterView
     }
 
     @Override
-    public GoTAdapter.GotCharacterViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public CharacterAdapter.GotCharacterViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         return new GotCharacterViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.got_character_row, parent, false));
     }
 
     @Override
-    public void onBindViewHolder(final GoTAdapter.GotCharacterViewHolder holder, final int position) {
+    public void onBindViewHolder(final CharacterAdapter.GotCharacterViewHolder holder, final int position) {
         final GoTCharacter character = gcs.get(position);
 
         holder.render(character);
         holder.imp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
-                startDetailActivity(character, holder.imp);
+                if (activity instanceof CharactersFragment.CharacterContract) {
+                    ((CharactersFragment.CharacterContract) activity).onCharacterClick(character, holder.imp);
+                }
             }
         });
     }
@@ -77,7 +80,7 @@ public class GoTAdapter extends RecyclerView.Adapter<GoTAdapter.GotCharacterView
     @Override
     public Filter getFilter() {
         if (mFilter == null) {
-            mFilter = new FilterCharacterSearch(this, gcs);
+            mFilter = new CharacterSearchFilter(this, gcs);
         }
 
         return mFilter;
@@ -97,23 +100,6 @@ public class GoTAdapter extends RecyclerView.Adapter<GoTAdapter.GotCharacterView
         public void render(final GoTCharacter character) {
             tvn.setText(character.getName());
             imp.setImageURI(Uri.parse(character.getImageUrl()));
-        }
-    }
-
-    private void startDetailActivity(GoTCharacter character, View sharedElement) {
-        Intent intent = new Intent(activity, DetailActivity.class);
-        intent.putExtra(DetailActivity.EXTRA_CHARACTER, Parcels.wrap(character));
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(
-                    activity,
-                    sharedElement,
-                    activity.getString(R.string.transition_shared_image)
-            );
-
-            ActivityCompat.startActivity(activity, intent, options.toBundle());
-        } else {
-            activity.startActivity(intent);
         }
     }
 

@@ -14,7 +14,7 @@ import java.util.Collection;
 import java.util.List;
 
 import es.npatarino.android.gotchallenge.R;
-import es.npatarino.android.gotchallenge.adapter.GoTHouseAdapter;
+import es.npatarino.android.gotchallenge.adapter.HouseAdapter;
 import es.npatarino.android.gotchallenge.model.GoTCharacter;
 import es.npatarino.android.gotchallenge.model.GoTHouse;
 import es.npatarino.android.gotchallenge.net.GoTRestClient;
@@ -25,11 +25,12 @@ import retrofit.Retrofit;
 /**
  * Fragment with the list of houses
  */
-public class GoTHousesFragment extends Fragment {
+public class HousesFragment extends Fragment {
 
     private static final String TAG = "GoTHousesListFragment";
-    private GoTHouseAdapter mAdapter;
+    private HouseAdapter mAdapter;
     private ContentLoadingProgressBar mProgress;
+
     private Callback<List<GoTCharacter>> callback = new Callback<List<GoTCharacter>>() {
         @Override
         public void onResponse(Response<List<GoTCharacter>> response, Retrofit retrofit) {
@@ -49,7 +50,7 @@ public class GoTHousesFragment extends Fragment {
         }
     };
 
-    public GoTHousesFragment() {
+    public HousesFragment() {
     }
 
     @Override
@@ -58,7 +59,7 @@ public class GoTHousesFragment extends Fragment {
         mProgress = (ContentLoadingProgressBar) rootView.findViewById(R.id.pb);
         RecyclerView rv = (RecyclerView) rootView.findViewById(R.id.houses);
 
-        mAdapter = new GoTHouseAdapter(getActivity());
+        mAdapter = new HouseAdapter(getActivity());
         rv.setLayoutManager(new LinearLayoutManager(getActivity()));
         rv.setHasFixedSize(true);
         rv.setAdapter(mAdapter);
@@ -66,5 +67,12 @@ public class GoTHousesFragment extends Fragment {
         GoTRestClient.getInstance(getContext()).characters(callback);
 
         return rootView;
+    }
+
+    /**
+     * Contract of characters
+     */
+    public interface HouseContract {
+        void onHouseClick(GoTHouse house, View sharedElement);
     }
 }
