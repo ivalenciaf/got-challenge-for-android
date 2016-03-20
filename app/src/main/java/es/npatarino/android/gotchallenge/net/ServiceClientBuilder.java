@@ -35,8 +35,11 @@ public class ServiceClientBuilder {
 
     //private static final HttpLoggingInterceptor.Level LOGGING_LEVEL = HttpLoggingInterceptor.Level.BODY;
     private static final HttpLoggingInterceptor.Level LOGGING_LEVEL = HttpLoggingInterceptor.Level.BASIC;
-    private static final long CONNECT_TIMEOUT = 5000;
-    private static final long READ_TIMEOUT = 5000;
+    private static final long CONNECT_TIMEOUT = 15000;
+    private static final long READ_TIMEOUT = 20000;
+    private static final int CACHE_DIR_MAXSIZE = 25 * 1024 * 1024; // 25 MB
+    private static final int MAX_AGE = 60; //1 minute
+    private static final int MAX_STALE = 60 * 60 * 24 * 28; // 4 weeks
     private static final String BASE_URL = "http://ec2-52-18-202-124.eu-west-1.compute.amazonaws.com:3000/";
 
     private String baseUrl = BASE_URL;
@@ -73,7 +76,7 @@ public class ServiceClientBuilder {
     private void setupCache(final Context context) {
         if (context != null) {
             File httpCacheDirectory = new File(context.getCacheDir(), "responses");
-            Cache httpResponseCache = new Cache(httpCacheDirectory, 20 * 1024 * 1024);
+            Cache httpResponseCache = new Cache(httpCacheDirectory, CACHE_DIR_MAXSIZE);
             okHttpClient.setCache(httpResponseCache);
 
             RequestCacheInterceptor cacheInterceptor = new RequestCacheInterceptor(context);
@@ -170,8 +173,8 @@ public class ServiceClientBuilder {
         public Response intercept(Chain chain) throws IOException {
             Request originalRequest = chain.request();
             String cacheHeaderValue = isNetworkAvailable(context)
-                    ? "public, max-age=2419200"
-                    : "public, only-if-cached, max-stale=2419200";
+                    ? "public, max-age=" + MAX_AGE
+                    : "public, only-if-cached, max-stale=" + MAX_STALE;
             Request request = originalRequest.newBuilder().build();
             Response response = chain.proceed(request);
             return response.newBuilder()
