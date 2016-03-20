@@ -35,10 +35,12 @@ public class ServiceClientBuilder {
 
     //private static final HttpLoggingInterceptor.Level LOGGING_LEVEL = HttpLoggingInterceptor.Level.BODY;
     private static final HttpLoggingInterceptor.Level LOGGING_LEVEL = HttpLoggingInterceptor.Level.BASIC;
+
     private static final long CONNECT_TIMEOUT = 15000;
     private static final long READ_TIMEOUT = 20000;
+    private static final String CACHE_DIR = "responses";
     private static final int CACHE_DIR_MAXSIZE = 25 * 1024 * 1024; // 25 MB
-    private static final int MAX_AGE = 60; //1 minute
+    private static final int MAX_AGE = 60 * 60 * 24 * 28;
     private static final int MAX_STALE = 60 * 60 * 24 * 28; // 4 weeks
     private static final String BASE_URL = "http://ec2-52-18-202-124.eu-west-1.compute.amazonaws.com:3000/";
 
@@ -75,7 +77,7 @@ public class ServiceClientBuilder {
 
     private void setupCache(final Context context) {
         if (context != null) {
-            File httpCacheDirectory = new File(context.getCacheDir(), "responses");
+            File httpCacheDirectory = new File(context.getCacheDir(), CACHE_DIR);
             Cache httpResponseCache = new Cache(httpCacheDirectory, CACHE_DIR_MAXSIZE);
             okHttpClient.setCache(httpResponseCache);
 
@@ -160,7 +162,8 @@ public class ServiceClientBuilder {
     }
 
     /**
-     * OkHttp interceptor of requests that inject cache headers so that the request is saved in disk
+     * OkHttp interceptor of requests that inject cache headers so that responses are served from
+     * network when online and served from cache dir when offline
      */
     private class RequestCacheInterceptor implements Interceptor {
         private Context context;
